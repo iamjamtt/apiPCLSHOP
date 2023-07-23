@@ -33,11 +33,14 @@ const addUser = async (req, res) => {
 
         const user = { nombre, apellido, correo, contrasena };
         const connection = await getConnection();
-        await connection.query("INSERT INTO usuario SET ?", user);
-        res.json({ 
-            message: "Usuario added",
-            user: user
-        });
+        const result = await connection.query("INSERT INTO usuario SET ?", user);
+        
+        if (result.affectedRows === 1) {
+            const newUser = await connection.query("SELECT * FROM usuario WHERE usuario_id = ?", result.insertId);
+            res.json(newUser);
+        }else{
+            res.status(400).json({ message: "content not found" });
+        }
     } catch (error) {
         res.status(500);
         res.send(error.message);
